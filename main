@@ -1,0 +1,919 @@
+import pandas as pd
+from pandas import ExcelWriter
+from pandas import ExcelFile
+import requests
+from bs4 import BeautifulSoup
+import os
+import pickle
+COLORS = {\
+"red":"\u001b[31;1m",
+"cyan":"\u001b[36m",
+"green":"\u001b[32m",
+"white": "\u001b[37m",
+"byellow": "\u001b[33;1m",
+"bblue": "\u001b[34;1m",
+"bmagenta": "\u001b[35;1m",
+"reset":"\u001b[0m",
+}
+def colorText(text): #Función para cambiar el color de las letras.
+    for color in COLORS:
+        text = text.replace("[[" + color + "]]", COLORS[color])
+    return text
+os.system("cls")
+Logo  = open("Polla_armar.txt","r")
+Polla_logo = "".join(Logo.readlines())
+print(colorText(Polla_logo))
+print("\n")
+print("\n")
+klingon=input("Presione 'Enter' para iniciar el programa. ")
+os.system("cls")
+
+def Cargar_User():
+    import os
+    import pickle
+    New_count=1
+    Search_count=-1
+    Lista_de_armado_de_números=[]
+    Lista_de_armado_de_números2=[]
+    print(colorText("1. Ingresar nuevo usuario para la [[bblue]]Polla de 50[[reset]]"))
+    print(colorText("2. Ingresar nuevo usuario para la [[bmagenta]]Polla de 100[[reset]]"))
+    print("\n")
+    Polla_sel=input("Ingresar comando:  ")
+    if Polla_sel=="1":
+        os.system("cls")
+        Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb'))
+        Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb'))
+        Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb'))
+        print(colorText("[[bblue]]Polla de 50[[reset]]"))
+        User=(input("Usuario: ")).title().rstrip().lstrip() #Se pide el nombre del Usuario
+        if User.title().rstrip().lstrip() in Lista_de_Usuarios or User=="":
+            while User.title().rstrip().lstrip() in Lista_de_Usuarios or User=="":
+                print("Este Usuario ya se encuentra registrado, por favor introduzca otro nombre.")
+                User=input("Usuario:    ").title().rstrip().lstrip()
+        Lista_de_Usuarios.append(User.title().lstrip().rstrip())
+        for Nums in range(10): #Loop para ingresar 10 números
+            Armando_nums=int(input(f"Ingrese el Número {New_count} del Usuario.  "))
+            New_count+=1
+            while Armando_nums in Lista_de_armado_de_números: #Por si repite números, se puede distinguir de los primeros por tener una unidad de cien o mil diferente
+                Armando_nums+=100
+            Lista_de_armado_de_números.append(Armando_nums) #Se agrega el número ingresado a la pre-lista para Números
+            Lista_de_armado_de_números2.append(Armando_nums) #Se agrega el número ingresado a la pre-lista para Borrados
+        New_count=1
+        Lista_de_Numeros.append(sorted(Lista_de_armado_de_números)) #Se agrega la pre-lista a la Lista de Números
+        Lista_de_Borrados.append(sorted(Lista_de_armado_de_números2)) #Se agrega la pre-lista a la Lista de Números Borrados
+        Lista_de_armado_de_números=[] #Se resetea la pre-lista de Números
+        Lista_de_armado_de_números2=[] #Se resetea la pre-lista de Borrados
+        Lista_de_Numeros_Sorted=[]
+        Lista_de_Borrados_Sorted=[]
+        Lista_de_Usuarios_Sorted=sorted(Lista_de_Usuarios)
+        for each in Lista_de_Usuarios_Sorted:
+            for x in range(len(Lista_de_Usuarios)):
+                Search_count+=1
+                if each==Lista_de_Usuarios[Search_count]:
+                    Lista_de_Numeros_Sorted.append(Lista_de_Numeros[Search_count])
+                    Lista_de_Borrados_Sorted.append(Lista_de_Borrados[Search_count])
+            Search_count=-1
+        Lista_de_Numeros=[]
+        Lista_de_Usuarios=[]
+        Lista_de_Borrados=[]
+        for each in Lista_de_Usuarios_Sorted:
+            Lista_de_Usuarios.append(each)
+        for each in Lista_de_Numeros_Sorted:
+            Lista_de_Numeros.append(each)
+        for each in Lista_de_Borrados_Sorted:
+            Lista_de_Borrados.append(each)
+        Lista_de_Usuarios_Sorted=[]
+        Lista_de_Numeros_Sorted=[]
+        Lista_de_Borrados_Sorted=[]
+        pickle.dump(Lista_de_Usuarios, open('Lista_de_Usuarios.dat', 'wb'))
+        pickle.dump(Lista_de_Numeros, open('Lista_de_Numeros.dat', 'wb'))
+        pickle.dump(Lista_de_Borrados, open('Lista_de_Borrados.dat', 'wb'))
+    elif Polla_sel=="2":
+        os.system("cls")
+        Lista_de_Usuarios_100=pickle.load(open('Lista_de_Usuarios_100.dat', 'rb'))
+        Lista_de_Numeros_100=pickle.load(open('Lista_de_Numeros_100.dat', 'rb'))
+        Lista_de_Borrados_100=pickle.load(open('Lista_de_Borrados_100.dat', 'rb'))
+        print(colorText("[[bmagenta]]Polla de 100[[reset]]"))
+        User=(input("Usuario: ")).title().rstrip().lstrip() #Se pide el nombre del Usuario
+        if User.title().rstrip().lstrip() in Lista_de_Usuarios_100 or User=="":
+            while User.title().rstrip().lstrip() in Lista_de_Usuarios_100 or User=="":
+                print("Este Usuario ya se encuentra registrado, por favor introduzca otro nombre.")
+                User=input("Usuario:    ").title().rstrip().lstrip()
+        Lista_de_Usuarios_100.append(User.title().lstrip().rstrip())
+        for Nums in range(10): #Loop para ingresar 10 números
+            Armando_nums=int(input(f"Ingrese el Número {New_count} del Usuario.  "))
+            New_count+=1
+            while Armando_nums in Lista_de_armado_de_números: #Por si repite números, se puede distinguir de los primeros por tener una unidad de cien o mil diferente
+                Armando_nums+=100
+            Lista_de_armado_de_números.append(Armando_nums) #Se agrega el número ingresado a la pre-lista para Números
+            Lista_de_armado_de_números2.append(Armando_nums) #Se agrega el número ingresado a la pre-lista para Borrados
+        New_count=1
+        Lista_de_Numeros_100.append(sorted(Lista_de_armado_de_números)) #Se agrega la pre-lista a la Lista de Números
+        Lista_de_Borrados_100.append(sorted(Lista_de_armado_de_números2)) #Se agrega la pre-lista a la Lista de Números Borrados
+        Lista_de_armado_de_números=[] #Se resetea la pre-lista de Números
+        Lista_de_armado_de_números2=[] #Se resetea la pre-lista de Borrados
+        Lista_de_Numeros_Sorted_100=[]
+        Lista_de_Borrados_Sorted_100=[]
+        Lista_de_Usuarios_Sorted_100=sorted(Lista_de_Usuarios_100)
+        for each in Lista_de_Usuarios_Sorted_100:
+            for x in range(len(Lista_de_Usuarios_100)):
+                Search_count+=1
+                if each==Lista_de_Usuarios_100[Search_count]:
+                    Lista_de_Numeros_Sorted_100.append(Lista_de_Numeros_100[Search_count])
+                    Lista_de_Borrados_Sorted_100.append(Lista_de_Borrados_100[Search_count])
+            Search_count=-1
+        Lista_de_Numeros_100=[]
+        Lista_de_Usuarios_100=[]
+        Lista_de_Borrados_100=[]
+        for each in Lista_de_Usuarios_Sorted_100:
+            Lista_de_Usuarios_100.append(each)
+        for each in Lista_de_Numeros_Sorted_100:
+            Lista_de_Numeros_100.append(each)
+        for each in Lista_de_Borrados_Sorted_100:
+            Lista_de_Borrados_100.append(each)
+        Lista_de_Usuarios_Sorted_100=[]
+        Lista_de_Numeros_Sorted_100=[]
+        Lista_de_Borrados_Sorted_100=[]
+        pickle.dump(Lista_de_Usuarios_100, open('Lista_de_Usuarios_100.dat', 'wb'))
+        pickle.dump(Lista_de_Numeros_100, open('Lista_de_Numeros_100.dat', 'wb'))
+        pickle.dump(Lista_de_Borrados_100, open('Lista_de_Borrados_100.dat', 'wb'))
+    else:
+        klingon=""
+    return
+
+def Mostrar_User():
+    import os
+    import pickle
+    Show_count=-1
+    print(colorText("1. Ver los usuarios ingresados para la [[bblue]]Polla de 50[[reset]]"))
+    print(colorText("2. Ver los usuarios ingresados para la [[bmagenta]]Polla de 100[[reset]]"))
+    print("\n")
+    Polla_sel=input("Ingresar comando:  ")
+    os.system("cls")
+    if Polla_sel=="1":
+        Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb'))
+        Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb'))
+        Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb'))
+        if Lista_de_Usuarios==[]:
+            print(colorText("No hay Usuarios registrados en la [[bblue]]Polla de 50[[reset]]."))
+        else:
+            print(colorText(f"Hay un total de {len(Lista_de_Usuarios)} usuarios registrados en la [[bblue]]Polla de 50[[reset]]."))
+            for X in Lista_de_Usuarios:
+                Show_count+=1
+                print(Lista_de_Usuarios[Show_count])
+                print(Lista_de_Borrados[Show_count])
+            Show_count=-1
+        klingon=input("")
+        os.system("cls")
+    elif Polla_sel=="2":
+        Lista_de_Usuarios_100=pickle.load(open('Lista_de_Usuarios_100.dat', 'rb'))
+        Lista_de_Numeros_100=pickle.load(open('Lista_de_Numeros_100.dat', 'rb'))
+        Lista_de_Borrados_100=pickle.load(open('Lista_de_Borrados_100.dat', 'rb'))
+        if Lista_de_Usuarios_100==[]:
+            print(colorText("No hay Usuarios registrados en la [[bmagenta]]Polla de 100[[reset]]."))
+        else:
+            print(colorText(f"Hay un total de {len(Lista_de_Usuarios_100)} usuarios registrados en la [[bmagenta]]Polla de 100[[reset]]."))
+            for X in Lista_de_Usuarios_100:
+                Show_count+=1
+                print(Lista_de_Usuarios_100[Show_count])
+                print(Lista_de_Borrados_100[Show_count])
+            Show_count=-1
+        klingon=input("")
+        os.system("cls")
+    return
+
+def Buscar_User():
+    import pickle
+    import os
+    Search_count=-1
+    print(colorText("1. Buscar un usuario ingresado en la [[bblue]]Polla de 50[[reset]]"))
+    print(colorText("2. Buscar un usuario ingresado en la [[bmagenta]]Polla de 100[[reset]]"))
+    print("\n")
+    Polla_sel=input("Ingresar comando:  ")
+    os.system("cls")
+    if Polla_sel=="1":
+        Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb'))
+        Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb'))
+        Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb'))
+        Search=input(colorText("Ingrese el Usuario que desea buscar en la [[bblue]]Polla de 50[[reset]]. ")).rstrip().lstrip().title()
+        os.system("cls")
+        if Search not in Lista_de_Usuarios:
+            print(colorText("""
+            El Usuario no ha sido encontrado en la [[bblue]]Polla de 50[[reset]]. 
+            Revise si lo ha escrito correctamente y vuelva a intentar.
+            """))
+        else:
+            for X in Lista_de_Usuarios:
+                Search_count+=1
+                if Search==X:
+                    print(colorText("[[bblue]]Polla de 50[[reset]]"))
+                    print(colorText(f"""
+                    Usuario: [[byellow]]{Lista_de_Usuarios[Search_count]}[[reset]]
+                    Números iniciales:  [[green]] {Lista_de_Numeros[Search_count]}[[reset]]
+                    Números sin acertar: [[red]]{Lista_de_Borrados[Search_count]}[[reset]]
+                    """))
+            Search_count=-1
+        klingon=input("")
+        os.system("cls")
+    elif Polla_sel=="2":
+        Lista_de_Usuarios_100=pickle.load(open('Lista_de_Usuarios_100.dat', 'rb'))
+        Lista_de_Numeros_100=pickle.load(open('Lista_de_Numeros_100.dat', 'rb'))
+        Lista_de_Borrados_100=pickle.load(open('Lista_de_Borrados_100.dat', 'rb'))
+        Search=input(colorText("Ingrese el Usuario que desea buscar en la [[bmagenta]]Polla de 100[[reset]]. ")).rstrip().lstrip().title()
+        os.system("cls")
+        if Search not in Lista_de_Usuarios_100:
+            print(colorText("""
+            El Usuario no ha sido encontrado en la [[bmagenta]]Polla de 100[[reset]]. 
+            Revise si lo ha escrito correctamente y vuelva a intentar.
+            """))
+        else:
+            for X in Lista_de_Usuarios_100:
+                Search_count+=1
+                if Search==X:
+                    print(colorText("[[bmagenta]]Polla de 100[[reset]]"))
+                    print(colorText(f"""
+                    Usuario: [[byellow]]{Lista_de_Usuarios_100[Search_count]}[[reset]]
+                    Números iniciales:  [[green]] {Lista_de_Numeros_100[Search_count]}[[reset]]
+                    Números sin acertar: [[red]]{Lista_de_Borrados_100[Search_count]}[[reset]]"""))
+            Search_count=-1
+        klingon=input("")
+        os.system("cls")
+    return
+
+def Borrar_User():
+    import os
+    import pickle
+    Search_count=-1
+    print(colorText("1. [[byellow]]Borrar[[reset]] un usuario ingresado en la [[bblue]]Polla de 50[[reset]]"))
+    print(colorText("2. [[byellow]]Borrar[[reset]] un usuario ingresado en la [[bmagenta]]Polla de 100[[reset]]"))
+    print("\n")
+    Polla_sel=input("Ingresar comando:  ")
+    os.system("cls")
+    if Polla_sel=="1":
+        Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb'))
+        Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb'))
+        Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb'))
+        Search=input(colorText("Ingrese el Usuario que desea eliminar en la [[bblue]]Polla de 50[[reset]]. ")).title().rstrip().lstrip()
+        if Search.title().rstrip().lstrip() not in Lista_de_Usuarios:
+            print(colorText("""
+            El Usuario no ha sido encontrado en la [[bblue]]Polla de 50[[reset]].
+            Revise si lo ha escrito correctamente y vuelva a intentar
+            """))
+        else:
+            for X in Lista_de_Usuarios:
+                Search_count+=1
+                if Search==X:
+                    print(colorText(f"""
+                    Usuario: {Lista_de_Usuarios[Search_count]}
+                    Números iniciales:   {Lista_de_Numeros[Search_count]}
+                    Números sin acertar: {Lista_de_Borrados[Search_count]}
+
+                    [[byellow]]DESEA ELIMINARLO?[[reset]] Si o No"""))
+                    Seguridad=input("")
+                    if Seguridad=="Si" or Seguridad=="si" or Seguridad=="SI":
+                        del Lista_de_Numeros[Search_count]
+                        del Lista_de_Borrados[Search_count]
+                        del Lista_de_Usuarios[Search_count]
+                        pickle.dump(Lista_de_Usuarios, open('Lista_de_Usuarios.dat', 'wb'))
+                        pickle.dump(Lista_de_Numeros, open('Lista_de_Numeros.dat', 'wb'))
+                        pickle.dump(Lista_de_Borrados, open('Lista_de_Borrados.dat', 'wb'))
+                        os.system("cls")
+                        print("\n")
+                        print("\n")
+                        print(colorText("[[byellow]]Usuario Eliminado de la [[bblue]]Polla de 50[[reset]]"))
+                        print("\n")
+                        print("\n")
+                        klingon=input("")
+            Search_count=-1
+    elif Polla_sel=="2":
+        Lista_de_Usuarios_100=pickle.load(open('Lista_de_Usuarios_100.dat', 'rb'))
+        Lista_de_Numeros_100=pickle.load(open('Lista_de_Numeros_100.dat', 'rb'))
+        Lista_de_Borrados_100=pickle.load(open('Lista_de_Borrados_100.dat', 'rb'))
+        Search=input(colorText("Ingrese el Usuario que desea eliminar en la [[bmagenta]]Polla de 100[[reset]]. ")).title().rstrip().lstrip()
+        if Search.title().rstrip().lstrip() not in Lista_de_Usuarios_100:
+            print(colorText("""
+            El Usuario no ha sido encontrado en la [[bmagenta]]Polla de 100[[reset]].
+            Revise si lo ha escrito correctamente y vuelva a intentar
+            """))
+        else:
+            for X in Lista_de_Usuarios_100:
+                Search_count+=1
+                if Search==X:
+                    print(colorText(f"""
+                    Usuario: {Lista_de_Usuarios_100[Search_count]}
+                    Números iniciales:   {Lista_de_Numeros_100[Search_count]}
+                    Números sin acertar: {Lista_de_Borrados_100[Search_count]}
+
+                    [[byellow]]DESEA ELIMINARLO?[[reset]] Si o No"""))
+                    Seguridad=input("")
+                    if Seguridad=="Si" or Seguridad=="si" or Seguridad=="SI":
+                        del Lista_de_Numeros_100[Search_count]
+                        del Lista_de_Borrados_100[Search_count]
+                        del Lista_de_Usuarios_100[Search_count]
+                        pickle.dump(Lista_de_Usuarios_100, open('Lista_de_Usuarios_100.dat', 'wb'))
+                        pickle.dump(Lista_de_Numeros_100, open('Lista_de_Numeros_100', 'wb'))
+                        pickle.dump(Lista_de_Borrados_100, open('Lista_de_Borrados_100.dat', 'wb'))
+                        os.system("cls")
+                        print("\n")
+                        print("\n")
+                        print(colorText("[[byellow]]Usuario Eliminado de la [[bmagenta]]Polla de 100[[reset]]"))
+                        print("\n")
+                        print("\n")
+                        klingon=input("")
+            Search_count=-1
+    os.system("cls")
+    return
+
+
+def Crear_Excel():
+    import pandas as pd
+    from pandas import ExcelWriter
+    from pandas import ExcelFile
+    import os
+    import pickle
+    names=[]
+    N1=[]
+    N2=[]
+    N3=[]
+    N4=[]
+    N5=[]
+    N6=[]
+    N7=[]
+    N8=[]
+    N9=[]
+    N10=[]
+    print(colorText("1. Crear Excel para la [[bblue]]Polla de 50[[reset]]"))
+    print(colorText("2. Crear Excel para la [[bmagenta]]Polla de 100[[reset]]"))
+    print("\n")
+    Polla_sel=input("Ingresar comando:  ")
+    os.system("cls")
+    if Polla_sel=="1":
+        Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb'))
+        Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb'))
+        Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb'))
+        for each in Lista_de_Numeros:
+            N1.append(each[0])
+            N2.append(each[1])
+            N3.append(each[2])
+            N4.append(each[3])
+            N5.append(each[4])
+            N6.append(each[5])
+            N7.append(each[6])
+            N8.append(each[7])
+            N9.append(each[8])
+            N10.append(each[9])
+        dataf=pd.DataFrame(
+            {'Nombres': Lista_de_Usuarios,
+            'N1': N1,
+            'N2': N2,
+            'N3': N3,
+            'N4': N4,
+            'N5': N5,
+            'N6': N6,
+            'N7': N7,
+            'N8': N8,
+            'N9': N9,
+            'N10': N10,
+            })
+        dataf.index = dataf.index + 1
+        path=os.path.join(os.path.expanduser("~"), "Desktop", "Polla_50.xlsx")
+        dataf.to_excel(path)
+        print("\n")
+        print(colorText("[[green]]Excel de la [[bblue]]Polla 50[[green]] creado![[reset]]"))
+        print("\n")
+        klingon=input("")
+        os.system("cls")
+    elif Polla_sel=="2":
+        Lista_de_Usuarios_100=pickle.load(open('Lista_de_Usuarios_100.dat', 'rb'))
+        Lista_de_Numeros_100=pickle.load(open('Lista_de_Numeros_100.dat', 'rb'))
+        Lista_de_Borrados_100=pickle.load(open('Lista_de_Borrados_100.dat', 'rb'))
+        for each in Lista_de_Numeros_100:
+            N1.append(each[0])
+            N2.append(each[1])
+            N3.append(each[2])
+            N4.append(each[3])
+            N5.append(each[4])
+            N6.append(each[5])
+            N7.append(each[6])
+            N8.append(each[7])
+            N9.append(each[8])
+            N10.append(each[9])
+        dataf=pd.DataFrame(
+            {'Nombres': Lista_de_Usuarios_100,
+            'N1': N1,
+            'N2': N2,
+            'N3': N3,
+            'N4': N4,
+            'N5': N5,
+            'N6': N6,
+            'N7': N7,
+            'N8': N8,
+            'N9': N9,
+            'N10': N10,
+            })
+        dataf.index = dataf.index + 1
+        path = os.path.join(os.path.expanduser("~"), "Desktop", "Polla_100.xlsx")
+        dataf.to_excel(path)
+        print("\n")
+        print(colorText("[[green]]Excel de la [[bmagenta]]Polla 100[[green]] creado![[reset]]"))
+        print("\n")
+        klingon=input("")
+        os.system("cls")
+    else:
+        klingon=""
+        os.system("cls")
+    return
+    
+
+
+def Crear_Excel_Detallado():
+    import pandas as pd
+    from pandas import ExcelWriter
+    from pandas import ExcelFile
+    import os
+    import pickle
+    print(colorText("1. Crear Excel detallado para la [[bblue]]Polla de 50[[reset]]"))
+    print(colorText("2. Crear Excel detallado para la [[bmagenta]]Polla de 100[[reset]]"))
+    print("\n")
+    Polla_sel=input("Ingresar comando:  ")
+    os.system("cls")
+    N1=[]
+    N2=[]
+    N3=[]
+    N4=[]
+    N5=[]
+    N6=[]
+    N7=[]
+    N8=[]
+    N9=[]
+    N10=[]
+    N1ext=[]
+    N2ext=[]
+    N3ext=[]
+    N4ext=[]
+    N5ext=[]
+    N6ext=[]
+    N7ext=[]
+    N8ext=[]
+    N9ext=[]
+    N10ext=[]
+    Faltan=[]
+    if Polla_sel=="1":
+        Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb'))
+        Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb'))
+        Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb'))
+        for each in Lista_de_Numeros:
+            N1.append(each[0])
+            N2.append(each[1])
+            N3.append(each[2])
+            N4.append(each[3])
+            N5.append(each[4])
+            N6.append(each[5])
+            N7.append(each[6])
+            N8.append(each[7])
+            N9.append(each[8])
+            N10.append(each[9])
+        for each in Lista_de_Borrados:
+            Faltan.append(len(each))
+            if len(each)==0:
+                N1ext.append("")
+                N2ext.append("")
+                N3ext.append("")
+                N4ext.append("")
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==1:
+                N1ext.append(each[0])
+                N2ext.append("")
+                N3ext.append("")
+                N4ext.append("")
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==2:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append("")
+                N4ext.append("")
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==3:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append("")
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==4:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==5:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==6:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==7:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append(each[6])
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==8:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append(each[6])
+                N8ext.append(each[7])
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==9:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append(each[6])
+                N8ext.append(each[7])
+                N9ext.append(each[8])
+                N10ext.append("")
+            elif len(each)==10:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append(each[6])
+                N8ext.append(each[7])
+                N9ext.append(each[8])
+                N10ext.append(each[9])
+        dataf_detallado=pd.DataFrame(
+            {'Nombres': Lista_de_Usuarios,
+            'N1': N1,
+            'N2': N2,
+            'N3': N3,
+            'N4': N4,
+            'N5': N5,
+            'N6': N6,
+            'N7': N7,
+            'N8': N8,
+            'N9': N9,
+            'N10': N10,
+            'Faltan': Faltan,
+            'NF1': N1ext,
+            'NF2': N2ext,
+            'NF3': N3ext,
+            'NF4': N4ext,
+            'NF5': N5ext,
+            'NF6': N6ext,
+            'NF7': N7ext,
+            'NF8': N8ext,
+            'NF9': N9ext,
+            'NF10': N10ext,
+            })
+        dataf_detallado.index = dataf_detallado.index + 1
+        path = os.path.join(os.path.expanduser("~"), "Desktop", "Polla_detallado_50.xlsx")
+        dataf_detallado.to_excel(path)
+        print("\n")
+        print(colorText("[[green]]Excel detallado de la [[bblue]]Polla 50[[green]] creado![[reset]]"))
+        print("\n")
+        klingon=input("")
+        os.system("cls")
+    elif Polla_sel=="2":
+        Lista_de_Usuarios_100=pickle.load(open('Lista_de_Usuarios_100.dat', 'rb'))
+        Lista_de_Numeros_100=pickle.load(open('Lista_de_Numeros_100.dat', 'rb'))
+        Lista_de_Borrados_100=pickle.load(open('Lista_de_Borrados_100.dat', 'rb'))
+        for each in Lista_de_Numeros_100:
+                N1.append(each[0])
+                N2.append(each[1])
+                N3.append(each[2])
+                N4.append(each[3])
+                N5.append(each[4])
+                N6.append(each[5])
+                N7.append(each[6])
+                N8.append(each[7])
+                N9.append(each[8])
+                N10.append(each[9])
+        for each in Lista_de_Borrados_100:
+            Faltan.append(len(each))
+            if len(each)==0:
+                N1ext.append("")
+                N2ext.append("")
+                N3ext.append("")
+                N4ext.append("")
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==1:
+                N1ext.append(each[0])
+                N2ext.append("")
+                N3ext.append("")
+                N4ext.append("")
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==2:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append("")
+                N4ext.append("")
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==3:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append("")
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==4:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append("")
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==5:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append("")
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==6:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append("")
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==7:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append(each[6])
+                N8ext.append("")
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==8:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append(each[6])
+                N8ext.append(each[7])
+                N9ext.append("")
+                N10ext.append("")
+            elif len(each)==9:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append(each[6])
+                N8ext.append(each[7])
+                N9ext.append(each[8])
+                N10ext.append("")
+            elif len(each)==10:
+                N1ext.append(each[0])
+                N2ext.append(each[1])
+                N3ext.append(each[2])
+                N4ext.append(each[3])
+                N5ext.append(each[4])
+                N6ext.append(each[5])
+                N7ext.append(each[6])
+                N8ext.append(each[7])
+                N9ext.append(each[8])
+                N10ext.append(each[9])
+        dataf_detallado=pd.DataFrame(
+            {'Nombres': Lista_de_Usuarios_100,
+            'N1': N1,
+            'N2': N2,
+            'N3': N3,
+            'N4': N4,
+            'N5': N5,
+            'N6': N6,
+            'N7': N7,
+            'N8': N8,
+            'N9': N9,
+            'N10': N10,
+            'Faltan': Faltan,
+            'NF1': N1ext,
+            'NF2': N2ext,
+            'NF3': N3ext,
+            'NF4': N4ext,
+            'NF5': N5ext,
+            'NF6': N6ext,
+            'NF7': N7ext,
+            'NF8': N8ext,
+            'NF9': N9ext,
+            'NF10': N10ext,
+            })
+        dataf_detallado.index = dataf_detallado.index + 1
+        path = os.path.join(os.path.expanduser("~"), "Desktop", "Polla_detallado_100.xlsx")
+        dataf_detallado.to_excel(path)
+        print("\n")
+        print(colorText("[[green]]Excel detallado de la [[bmagenta]]Polla 100[[green]] creado![[reset]]"))
+        print("\n")
+        klingon=input("")
+        os.system("cls")
+    else:
+        klingon=""
+        os.system("cls")
+    return
+
+
+def Buscar_Faltantes():
+    import os
+    import pickle
+    Search_count=-1
+    print(colorText("1. Controlar faltantes en la [[bblue]]Polla de 50[[reset]]"))
+    print(colorText("2. Controlar faltantes en la [[bmagenta]]Polla de 100[[reset]]"))
+    print("\n")
+    Polla_sel=input("Ingresar comando:  ")
+    os.system("cls")
+    if Polla_sel=="1":
+        Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb'))
+        Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb'))
+        Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb'))
+        Faltantes=int(input(colorText("Escriba la cantidad de números faltantes de los Usuarios que desea ver en la [[bblue]]Polla de 50[[reset]]:   ")))
+        print("\n")
+        for falta in Lista_de_Borrados:
+            Search_count+=1
+            if len(falta)==Faltantes:
+                print(colorText(f"A [[green]]{Lista_de_Usuarios[Search_count]}[[reset]] le faltan[[red]] {Faltantes}[[reset]] números: [[byellow]]{Lista_de_Borrados[Search_count]}[[reset]]"))
+                print("\n")
+        Search_count=-1
+        klingon=input("")
+        os.system("cls")
+    elif Polla_sel=="2":
+        Lista_de_Usuarios_100=pickle.load(open('Lista_de_Usuarios_100.dat', 'rb'))
+        Lista_de_Numeros_100=pickle.load(open('Lista_de_Numeros_100.dat', 'rb'))
+        Lista_de_Borrados_100=pickle.load(open('Lista_de_Borrados_100.dat', 'rb'))
+        Faltantes=int(input(colorText("Escriba la cantidad de números faltantes de los Usuarios que desea ver en la [[bmagenta]]Polla de 100[[reset]]:   ")))
+        for falta in Lista_de_Borrados_100:
+            Search_count+=1
+            if len(falta)==Faltantes:
+                print(colorText(f"A [[green]]{Lista_de_Usuarios_100[Search_count]}[[reset]] le faltan[[red]] {Faltantes}[[reset]] números: [[byellow]]{Lista_de_Borrados_100[Search_count]}[[reset]]"))
+                print("\n")
+        Search_count=-1
+        klingon=input("")
+        os.system("cls")
+    else:
+        klingon=""
+        os.system("cls")
+    return
+
+
+    
+def Reiniciar_Polla():
+    import pickle
+    import os
+    Seguridad=""
+    Seguridad=input(colorText("""
+    Está seguro que quiere reiniciar la [[bblue]]Polla de 50[[reset]] y la [[bmagenta]]Polla de 100[[reset]]?
+    Si o No
+    
+    """))
+    os.system("cls")
+    if Seguridad=="Si" or Seguridad=="si" or Seguridad=="SI":
+        print(colorText("""
+        [[byellow]]LA POLLA HA SIDO REINICIADA[[reset]]
+        """))
+        Lista_de_Usuarios=[]
+        Lista_de_Usuarios_100=[]
+        Lista_de_Jugadas=[]
+        Lista_de_Numeros=[]
+        Lista_de_Numeros_100=[]
+        Lista_de_Borrados=[]
+        Lista_de_Borrados_100=[]
+        pickle.dump(Lista_de_Usuarios, open('Lista_de_Usuarios.dat', 'wb'))
+        pickle.dump(Lista_de_Numeros, open('Lista_de_Numeros.dat', 'wb'))
+        pickle.dump(Lista_de_Borrados, open('Lista_de_Borrados.dat', 'wb'))
+        pickle.dump(Lista_de_Usuarios_100, open('Lista_de_Usuarios_100.dat', 'wb'))
+        pickle.dump(Lista_de_Numeros_100, open('Lista_de_Numeros_100', 'wb'))
+        pickle.dump(Lista_de_Borrados_100, open('Lista_de_Borrados_100.dat', 'wb'))
+        pickle.dump(Lista_de_Jugadas, open('Lista_de_Jugadas.dat', 'wb'))
+        klingon=input("")
+        os.system("cls")
+    else:
+        Seguridad=""
+        os.system("cls")
+    return
+
+Control=""
+while Control!="salir" and Control!="Salir" and Control!="SALIR": #Loop principal
+    os.system("cls")
+    print("""
+    1. Ingresar nuevo usuario.
+    2. Mostrar Usuarios y sus números.
+    3. Buscar un usuario en específico.
+    4. Borrar un usuario en específico.
+    5. Crear Excel.
+    6. Crear Excel detallado.
+    7. Buscar faltantes en Usuarios.
+
+    0. Reiniciar Polla.
+
+    Salir. Cierra el programa.
+    """)
+    Control=input("Ingrese comando: ")
+    os.system("cls")
+    if Control=="1":
+        Cargar_User()
+    elif Control=="2":
+        Mostrar_User()
+    elif Control=="3":
+        Buscar_User()
+    elif Control=="4":
+        Borrar_User()
+    elif Control=="5":
+        Crear_Excel()
+    elif Control=="6":
+        Crear_Excel_Detallado()
+    elif Control=="7":
+        Buscar_Faltantes()
+    elif Control=="0":
+        Reiniciar_Polla()
+input("Programa terminado. ")
