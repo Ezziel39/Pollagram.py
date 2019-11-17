@@ -1,0 +1,860 @@
+import requests
+from bs4 import BeautifulSoup
+import os
+import pickle
+COLORS = {\
+"red":"\u001b[31;1m",
+"cyan":"\u001b[36m",
+"green":"\u001b[32m",
+"white": "\u001b[37m",
+"byellow": "\u001b[33;1m",
+"bblue": "\u001b[34;1m",
+"bmagenta": "\u001b[35;1m",
+"reset":"\u001b[0m",
+}
+def colorText(text): #Función para cambiar el color de las letras.
+    for color in COLORS:
+        text = text.replace("[[" + color + "]]", COLORS[color])
+    return text
+os.system("cls")
+
+#Intro:
+Control_Polla  = open("Polla_control.txt","r")
+Control_Logo = "".join(Control_Polla.readlines())
+print(colorText(Control_Logo))
+print("\n")
+print("\n")
+klingon=input("Presione 'Enter' para empezar a controlar. ")
+
+os.system("cls")
+#Comercial
+page=requests.get('http://servicios.elcomercial.com.ar/quinielas/quiniela.php?quiniela=nocturna&loteria=Nac')
+soup=BeautifulSoup(page.content, 'html.parser')
+date_com=soup.find_all(class_='subtitulo')
+Fecha_Comercial=date_com[0].get_text()
+print("")
+
+
+#Nación
+page=requests.get('http://servicios.lanacion.com.ar/loterias/quiniela-nacional')
+soup=BeautifulSoup(page.content, 'html.parser')
+lottery=soup.find(class_='quiniela tabla floatFix')
+numbers=lottery.find_all('td')
+Fecha_Nación=numbers[0].get_text()
+Nac_Fecha=Fecha_Nación[22:32]
+Nac_Hora=Fecha_Nación[-12:].replace("/", "-")
+
+Fecha=pickle.load(open("Fecha.dat", "rb"))
+os.system("cls")
+Lista_de_Jugadas=pickle.load(open('Lista_de_Jugadas.dat', 'rb')) #importar la lista de Jugadas
+######################################################################################################
+######################################################################################################
+def Control_by_LaNacion():
+    import os
+    import pickle
+    import pandas as pd
+    import requests
+    from bs4 import BeautifulSoup
+    os.system("cls")
+    Pre_lista_de_Jugadas=[]
+    Indice_de_captura=4
+    Show_Jugadas=[]
+    Columna2=[]
+    Columna4=[]
+    Columna6=[]
+    Columna8=[]
+    Columna1=["1.","5.","9.","13.","17."]
+    Columna3=["2.","6.","10.","14.","18."]
+    Columna5=["3.","7.","11.","15.","19."]
+    Columna7=["4.","8.","12.","16.","20."]
+    Colum2=0
+    Colum4=1
+    Colum6=2
+    Colum8=3
+    Lista_de_Jugadas=[]
+    Lista_de_Borrados=[]
+    Lista_de_Numeros=[]
+    Lista_de_Usuarios=[]
+    Search_count=-1
+    Winners=[]
+    Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb')) #importar la lista de Usuarios
+    Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb')) #importar la lista de Números
+    Lista_de_Jugadas=pickle.load(open('Lista_de_Jugadas.dat', 'rb')) #importar la lista de Jugadas
+    Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb')) #importar la lista de Números Borrados
+    page=requests.get('http://servicios.lanacion.com.ar/loterias/quiniela-nacional') #Página desde donde se obtienen los números sorteados
+    soup=BeautifulSoup(page.content, 'html.parser') #Lectura de la página
+    lottery=soup.find(class_='quiniela tabla floatFix') #Búsqueda de la tabla de contenido
+    numbers=lottery.find_all('td') #Ubicación del contenido
+    Fecha_Nación=numbers[0].get_text()
+    Nac_Hora=Fecha_Nación[-12:].replace("/", "-")
+    for i in range(20): #Loop para la captura de números
+        Pre_lista_de_Jugadas.append(numbers[Indice_de_captura].get_text())
+        Indice_de_captura+=2
+    Indice_de_captura=4
+    for u in Pre_lista_de_Jugadas: #Loop para la conversión a interger, acortado del número a 2 cifras y agregado a la lista
+        u=u[2:]
+        u=int(u, 10)
+        Show_Jugadas.append(u)
+    Pre_lista_de_Jugadas=[]
+    for h in range(5):
+        Columna2.append(Show_Jugadas[Colum2])
+        Columna4.append(Show_Jugadas[Colum4])
+        Columna6.append(Show_Jugadas[Colum6])
+        Columna8.append(Show_Jugadas[Colum8])
+        Colum2+=4
+        Colum4+=4
+        Colum6+=4
+        Colum8+=4
+    Colum2=0
+    Colum4=1
+    Colum6=2
+    Colum8=3
+    showdf=pd.DataFrame(
+        {'a': Columna1,
+        'b': Columna2,
+        'c': Columna3,
+        'd': Columna4,
+        'e': Columna5,
+        'f': Columna6,
+        'g': Columna7,
+        'h': Columna8,
+    })
+    showdf.set_index('a', inplace=True)
+    Seguridad=input(f"""
+    Los números sorteados en el día de hoy son:
+    {showdf}
+    Esto es correcto. Si o No?
+    """)
+    Columna2=[]
+    Columna4=[]
+    Columna6=[]
+    Columna8=[]
+    if Seguridad=="Si" or Seguridad=="si" or Seguridad=="SI":
+        Fecha=Nac_Hora
+        pickle.dump(Fecha, open('Fecha.dat', 'wb'))
+        for k in Show_Jugadas:
+            while k in Lista_de_Jugadas:
+                k+=100
+            Lista_de_Jugadas.append(k)
+    else:
+        Seguridad=""
+    Show_Jugadas=[]
+    os.system("cls")
+    for v in range(10):
+        for Listilla in Lista_de_Borrados: #Dentro de cada Lista en Números Borrados
+            for elemento in Listilla: #Cada elemento de cada Lista en Números Borrados
+                if elemento in Lista_de_Jugadas:
+                    Listilla.remove(elemento) #Si el número se ha sorteado, debe eliminarse de la lista de cada Usuario que lo tenga
+            Search_count+=1
+            if Listilla==[]: #Indicador para saber si alguien consiguió borrar todos los números
+                if Lista_de_Usuarios[Search_count] not in Winners:
+                    Winners.append(Lista_de_Usuarios[Search_count])
+        Search_count=-1
+    if Winners==[] and len(Lista_de_Jugadas)<90:
+        print("\n")
+        print("\n")
+        print(colorText("                          [[green]]                    Aún nadie ha ganado la [[bblue]]Polla de 50[[reset]]."))
+        print("\n")
+        print("\n")
+    elif Winners==[] and len(Lista_de_Jugadas)>90:
+        print("\n")
+        print("\n")
+        print(colorText("                          [[green]]                             Pozo vacante! en la [[bblue]]Polla de 50[[reset]]."))
+        print("\n")
+        print("\n")
+    elif len(Winners)==1:
+        print("\n")
+        print(colorText("                                     Hay sólo 1 ganador de la [[bblue]]Polla de 50[[reset]] de esta semana."))
+        print(f"                                                 Y el ganador es:")
+        Ganador=Winners[0]
+        print(colorText(f"  [[red]]                                                   {Ganador}[[reset]]"))
+    elif len(Winners)>1:
+        print("\n")
+        print(colorText(f"                                       Esta semana hay [[byellow]]{len(Winners)}[[reset]] ganadores de la [[bblue]]Polla de 50[[reset]]:"))
+        for won in Winners:
+            print("\n")
+            Search_count+=1
+            Ganador=Winners[Search_count]
+            print(colorText(f"        [[red]]                                               {Ganador}[[reset]]"))
+        Search_count=-1
+    pickle.dump(Lista_de_Usuarios, open('Lista_de_Usuarios.dat', 'wb'))
+    pickle.dump(Lista_de_Numeros, open('Lista_de_Numeros.dat', 'wb'))
+    pickle.dump(Lista_de_Borrados, open('Lista_de_Borrados.dat', 'wb'))
+    pickle.dump(Lista_de_Jugadas, open('Lista_de_Jugadas.dat', 'wb'))
+    print("\n")
+    klingon=input("")
+    os.system("cls")
+######################################################################################################
+######################################################################################################
+def Control_by_elComercial():
+    import os
+    import pickle
+    import pandas as pd
+    import requests
+    from bs4 import BeautifulSoup
+    os.system("cls")
+    Pre_lista_de_Jugadas=[]
+    Indice_de_captura=-1
+    Show_Jugadas=[]
+    Columna2=[]
+    Columna4=[]
+    Columna6=[]
+    Columna8=[]
+    Columna1=["1.","5.","9.","13.","17."]
+    Columna3=["2.","6.","10.","14.","18."]
+    Columna5=["3.","7.","11.","15.","19."]
+    Columna7=["4.","8.","12.","16.","20."]
+    Colum2=0
+    Colum4=1
+    Colum6=2
+    Colum8=3
+    Lista_de_Jugadas=[]
+    Lista_de_Borrados=[]
+    Lista_de_Numeros=[]
+    Lista_de_Usuarios=[]
+    Search_count=-1
+    Winners=[]
+    Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb')) #importar la lista de Usuarios
+    Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb')) #importar la lista de Números
+    Lista_de_Jugadas=pickle.load(open('Lista_de_Jugadas.dat', 'rb')) #importar la lista de Jugadas
+    Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb')) #importar la lista de Números Borrados
+    page=requests.get('http://servicios.elcomercial.com.ar/quinielas/quiniela.php?quiniela=nocturna&loteria=Nac') #Página desde donde se obtienen los números sorteados
+    soup=BeautifulSoup(page.content, 'html.parser') #Lectura de la página
+    lottery=soup.find_all(class_='numero') #Ubicación del contenido
+    date_com=soup.find_all(class_='subtitulo')
+    Fecha_Comercial=date_com[0].get_text()
+    for i in range(20): #Loop para la captura de números
+        Indice_de_captura+=1
+        Pre_lista_de_Jugadas.append(lottery[Indice_de_captura].get_text())
+    Indice_de_captura=-1
+    for u in Pre_lista_de_Jugadas: #Loop para la conversión a interger, acortado del número a 2 cifras y agregado a la lista
+        u=u[2:]
+        u=int(u, 10)
+        Show_Jugadas.append(u)
+    Pre_lista_de_Jugadas=[]
+    for h in range(5):
+        Columna2.append(Show_Jugadas[Colum2])
+        Columna4.append(Show_Jugadas[Colum4])
+        Columna6.append(Show_Jugadas[Colum6])
+        Columna8.append(Show_Jugadas[Colum8])
+        Colum2+=4
+        Colum4+=4
+        Colum6+=4
+        Colum8+=4
+    Colum2=0
+    Colum4=1
+    Colum6=2
+    Colum8=3
+    showdf=pd.DataFrame(
+        {'a': Columna1,
+        'b': Columna2,
+        'c': Columna3,
+        'd': Columna4,
+        'e': Columna5,
+        'f': Columna6,
+        'g': Columna7,
+        'h': Columna8,
+    })
+    showdf.set_index('a', inplace=True)
+    Seguridad=input(f"""
+    Los números sorteados en el día de hoy son:
+    {showdf}
+    Esto es correcto. Si o No?
+    """)
+    Columna2=[]
+    Columna4=[]
+    Columna6=[]
+    Columna8=[]
+    if Seguridad=="Si" or Seguridad=="si" or Seguridad=="SI":
+        Fecha=Fecha_Comercial[-10:]
+        pickle.dump(Fecha, open('Fecha.dat', 'wb'))
+        for k in Show_Jugadas:
+            while k in Lista_de_Jugadas:
+                k+=100
+            Lista_de_Jugadas.append(k)
+    else:
+        Seguridad=""
+    Show_Jugadas=[]
+    os.system("cls")
+    for v in range(10):
+        for Listilla in Lista_de_Borrados: #Dentro de cada Lista en Números Borrados
+            for elemento in Listilla: #Cada elemento de cada Lista en Números Borrados
+                if elemento in Lista_de_Jugadas:
+                    Listilla.remove(elemento) #Si el número se ha sorteado, debe eliminarse de la lista de cada Usuario que lo tenga
+            Search_count+=1
+            if Listilla==[]: #Indicador para saber si alguien consiguió borrar todos los números
+                if Lista_de_Usuarios[Search_count] not in Winners:
+                    Winners.append(Lista_de_Usuarios[Search_count])
+        Search_count=-1
+    if Winners==[] and len(Lista_de_Jugadas)<90:
+        print("\n")
+        print("\n")
+        print(colorText("                          [[green]]                    Aún nadie ha ganado la [[bblue]]Polla de 50[[reset]]."))
+        print("\n")
+        print("\n")
+    elif Winners==[] and len(Lista_de_Jugadas)>90:
+        print("\n")
+        print("\n")
+        print(colorText("                          [[green]]                             Pozo vacante! en la [[bblue]]Polla de 50[[reset]]."))
+        print("\n")
+        print("\n")
+    elif len(Winners)==1:
+        print("\n")
+        print(colorText("                                     Hay sólo 1 ganador de la [[bblue]]Polla de 50[[reset]] de esta semana."))
+        print(f"                                                 Y el ganador es:")
+        Ganador=Winners[0]
+        print(colorText(f"  [[red]]                                                   {Ganador}[[reset]]"))
+    elif len(Winners)>1:
+        print("\n")
+        print(colorText(f"                                       Esta semana hay [[byellow]]{len(Winners)}[[reset]] ganadores de la [[bblue]]Polla de 50[[reset]]:"))
+        for won in Winners:
+            print("\n")
+            Search_count+=1
+            Ganador=Winners[Search_count]
+            print(colorText(f"        [[red]]                                               {Ganador}[[reset]]"))
+        Search_count=-1
+    pickle.dump(Lista_de_Usuarios, open('Lista_de_Usuarios.dat', 'wb'))
+    pickle.dump(Lista_de_Numeros, open('Lista_de_Numeros.dat', 'wb'))
+    pickle.dump(Lista_de_Borrados, open('Lista_de_Borrados.dat', 'wb'))
+    pickle.dump(Lista_de_Jugadas, open('Lista_de_Jugadas.dat', 'wb'))
+    print("\n")
+    klingon=input("")
+    os.system("cls")
+######################################################################################################
+######################################################################################################
+def Control_manual():
+    import os
+    import pickle
+    import pandas as pd
+    import requests
+    from bs4 import BeautifulSoup
+    os.system("cls")
+    Show_Jugadas=[]
+    Columna2=[]
+    Columna4=[]
+    Columna6=[]
+    Columna8=[]
+    Columna1=["1.","5.","9.","13.","17."]
+    Columna3=["2.","6.","10.","14.","18."]
+    Columna5=["3.","7.","11.","15.","19."]
+    Columna7=["4.","8.","12.","16.","20."]
+    Colum2=0
+    Colum4=1
+    Colum6=2
+    Colum8=3
+    Lista_de_Jugadas=[]
+    Lista_de_Borrados=[]
+    Lista_de_Numeros=[]
+    Lista_de_Usuarios=[]
+    Search_count=-1
+    Winners=[]
+    Posición=1
+    Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb')) #importar la lista de Usuarios
+    Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb')) #importar la lista de Números
+    Lista_de_Jugadas=pickle.load(open('Lista_de_Jugadas.dat', 'rb')) #importar la lista de Jugadas
+    Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb')) #importar la lista de Números Borrados
+    for i in range(20): #Loop para la carga de números
+        Número_sorteado=int(input(f"Introduzca el número sorteado en la posición {Posición}: "))
+        Posición+=1
+        Show_Jugadas.append(Número_sorteado)
+    for h in range(5):
+        Columna2.append(Show_Jugadas[Colum2])
+        Columna4.append(Show_Jugadas[Colum4])
+        Columna6.append(Show_Jugadas[Colum6])
+        Columna8.append(Show_Jugadas[Colum8])
+        Colum2+=4
+        Colum4+=4
+        Colum6+=4
+        Colum8+=4
+    Colum2=0
+    Colum4=1
+    Colum6=2
+    Colum8=3
+    showdf=pd.DataFrame(
+        {'a': Columna1,
+        'b': Columna2,
+        'c': Columna3,
+        'd': Columna4,
+        'e': Columna5,
+        'f': Columna6,
+        'g': Columna7,
+        'h': Columna8,
+    })
+    showdf.set_index('a', inplace=True)
+    Seguridad=input(f"""
+    Los números sorteados en el día de hoy son:
+    {showdf}
+    Esto es correcto. Si o No?
+    """)
+    Columna2=[]
+    Columna4=[]
+    Columna6=[]
+    Columna8=[]
+    if Seguridad=="Si" or Seguridad=="si" or Seguridad=="SI":
+        Fecha="La última carga fue realizada manualmente."
+        pickle.dump(Fecha, open('Fecha.dat', 'wb'))
+        for k in Show_Jugadas:
+            while k in Lista_de_Jugadas:
+                k+=100
+            Lista_de_Jugadas.append(k)
+    else:
+        Seguridad=""
+    Show_Jugadas=[]
+    os.system("cls")
+    for v in range(10):
+        for Listilla in Lista_de_Borrados: #Dentro de cada Lista en Números Borrados
+            for elemento in Listilla: #Cada elemento de cada Lista en Números Borrados
+                if elemento in Lista_de_Jugadas:
+                    Listilla.remove(elemento) #Si el número se ha sorteado, debe eliminarse de la lista de cada Usuario que lo tenga
+            Search_count+=1
+            if Listilla==[]: #Indicador para saber si alguien consiguió borrar todos los números
+                if Lista_de_Usuarios[Search_count] not in Winners:
+                    Winners.append(Lista_de_Usuarios[Search_count])
+        Search_count=-1
+    if Winners==[] and len(Lista_de_Jugadas)<90:
+        print("\n")
+        print("\n")
+        print(colorText("                          [[green]]                    Aún nadie ha ganado la [[bblue]]Polla de 50[[reset]]."))
+        print("\n")
+        print("\n")
+    elif Winners==[] and len(Lista_de_Jugadas)>90:
+        print("\n")
+        print("\n")
+        print(colorText("                          [[green]]                             Pozo vacante! en la [[bblue]]Polla de 50[[reset]]."))
+        print("\n")
+        print("\n")
+    elif len(Winners)==1:
+        print("\n")
+        print(colorText("                                     Hay sólo 1 ganador de la [[bblue]]Polla de 50[[reset]] de esta semana."))
+        print(f"                                                 Y el ganador es:")
+        Ganador=Winners[0]
+        print(colorText(f"  [[red]]                                                   {Ganador}[[reset]]"))
+    elif len(Winners)>1:
+        print("\n")
+        print(colorText(f"                                       Esta semana hay [[byellow]]{len(Winners)}[[reset]] ganadores de la [[bblue]]Polla de 50[[reset]]:"))
+        for won in Winners:
+            print("\n")
+            Search_count+=1
+            Ganador=Winners[Search_count]
+            print(colorText(f"        [[red]]                                               {Ganador}[[reset]]"))
+        Search_count=-1
+    pickle.dump(Lista_de_Usuarios, open('Lista_de_Usuarios.dat', 'wb'))
+    pickle.dump(Lista_de_Numeros, open('Lista_de_Numeros.dat', 'wb'))
+    pickle.dump(Lista_de_Borrados, open('Lista_de_Borrados.dat', 'wb'))
+    pickle.dump(Lista_de_Jugadas, open('Lista_de_Jugadas.dat', 'wb'))
+    print("\n")
+    klingon=input("")
+    os.system("cls")
+######################################################################################################
+######################################################################################################
+def Controlar():
+    import os
+    import pickle
+    os.system("cls")
+    Lista_de_Jugadas=[]
+    Lista_de_Borrados=[]
+    Lista_de_Numeros=[]
+    Lista_de_Usuarios=[]
+    Search_count=-1
+    Winners=[]
+    Lista_de_Usuarios=pickle.load(open('Lista_de_Usuarios.dat', 'rb')) #importar la lista de Usuarios
+    Lista_de_Numeros=pickle.load(open('Lista_de_Numeros.dat', 'rb')) #importar la lista de Números
+    Lista_de_Jugadas=pickle.load(open('Lista_de_Jugadas.dat', 'rb')) #importar la lista de Jugadas
+    Lista_de_Borrados=pickle.load(open('Lista_de_Borrados.dat', 'rb')) #importar la lista de Números Borrados
+    for v in range(10):
+        for Listilla in Lista_de_Borrados: #Dentro de cada Lista en Números Borrados
+            for elemento in Listilla: #Cada elemento de cada Lista en Números Borrados
+                if elemento in Lista_de_Jugadas:
+                    Listilla.remove(elemento) #Si el número se ha sorteado, debe eliminarse de la lista de cada Usuario que lo tenga
+            Search_count+=1
+            if Listilla==[]: #Indicador para saber si alguien consiguió borrar todos los números
+                if Lista_de_Usuarios[Search_count] not in Winners:
+                    Winners.append(Lista_de_Usuarios[Search_count])
+        Search_count=-1
+    if Winners==[] and len(Lista_de_Jugadas)<90:
+        print("\n")
+        print("\n")
+        print(colorText("                          [[green]]                    Aún nadie ha ganado la [[bblue]]Polla de 50[[reset]]."))
+        print("\n")
+        print("\n")
+    elif Winners==[] and len(Lista_de_Jugadas)>90:
+        print("\n")
+        print("\n")
+        print(colorText("                          [[green]]                             Pozo vacante! en la [[bblue]]Polla de 50[[reset]]."))
+        print("\n")
+        print("\n")
+    elif len(Winners)==1:
+        print("\n")
+        print(colorText("                                     Hay sólo 1 ganador de la [[bblue]]Polla de 50[[reset]] de esta semana."))
+        print(f"                                                 Y el ganador es:")
+        Ganador=Winners[0]
+        print(colorText(f"  [[red]]                                                   {Ganador}[[reset]]"))
+    elif len(Winners)>1:
+        print("\n")
+        print(colorText(f"                                       Esta semana hay [[byellow]]{len(Winners)}[[reset]] ganadores de la [[bblue]]Polla de 50[[reset]]:"))
+        for won in Winners:
+            print("\n")
+            Search_count+=1
+            Ganador=Winners[Search_count]
+            print(colorText(f"        [[red]]                                               {Ganador}[[reset]]"))
+        Search_count=-1
+    pickle.dump(Lista_de_Usuarios, open('Lista_de_Usuarios.dat', 'wb'))
+    pickle.dump(Lista_de_Numeros, open('Lista_de_Numeros.dat', 'wb'))
+    pickle.dump(Lista_de_Borrados, open('Lista_de_Borrados.dat', 'wb'))
+    pickle.dump(Lista_de_Jugadas, open('Lista_de_Jugadas.dat', 'wb'))
+    print("\n")
+    klingon=input("")
+    os.system("cls")
+######################################################################################################
+######################################################################################################
+def Ver_Jugadas():
+    import os
+    import pickle
+    os.system("cls")
+    Lista_de_Jugadas=[]
+    Lunes=[]
+    Martes=[]
+    Miércoles=[]
+    Jueves=[]
+    Viernes=[]
+    Lista_de_Jugadas=pickle.load(open('Lista_de_Jugadas.dat', 'rb')) #importar la lista de Jugadas
+    if Lista_de_Jugadas==[]:
+        print("Aún no hay números sorteados.")
+    elif len(Lista_de_Jugadas)==20:
+        print("Estos son todos los números sorteados el lunes:")
+        Lunes=Lista_de_Jugadas[0:20]
+        print(sorted(Lunes))
+    elif len(Lista_de_Jugadas)==40:
+        print("Estos son todos los números sorteados el lunes:")
+        Lunes=Lista_de_Jugadas[0:20]
+        print(sorted(Lunes))
+        print("")
+        print("Estos son todos los números sorteados el martes:")
+        Martes=Lista_de_Jugadas[20:40]
+        print(sorted(Martes))
+    elif len(Lista_de_Jugadas)==60:
+        print("Estos son todos los números sorteados el lunes:")
+        Lunes=Lista_de_Jugadas[0:20]
+        print(sorted(Lunes))
+        print("")
+        print("Estos son todos los números sorteados el martes:")
+        Martes=Lista_de_Jugadas[20:40]
+        print(sorted(Martes))
+        print("")
+        print("Estos son todos los números sorteados el miércoles:")
+        Miércoles=Lista_de_Jugadas[40:60]
+        print(sorted(Miércoles))
+    elif len(Lista_de_Jugadas)==80:
+        print("Estos son todos los números sorteados el lunes:")
+        Lunes=Lista_de_Jugadas[0:20]
+        print(sorted(Lunes))
+        print("")
+        print("Estos son todos los números sorteados el martes:")
+        Martes=Lista_de_Jugadas[20:40]
+        print(sorted(Martes))
+        print("")
+        print("Estos son todos los números sorteados el miércoles:")
+        Miércoles=Lista_de_Jugadas[40:60]
+        print(sorted(Miércoles))
+        print("")
+        print("Estos son todos los números sorteados el jueves:")
+        Jueves=Lista_de_Jugadas[60:80]
+        print(sorted(Jueves))
+    elif len(Lista_de_Jugadas)==100:
+        print("Estos son todos los números sorteados el lunes:")
+        Lunes=Lista_de_Jugadas[0:20]
+        print(sorted(Lunes))
+        print("")
+        print("Estos son todos los números sorteados el martes:")
+        Martes=Lista_de_Jugadas[20:40]
+        print(sorted(Martes))
+        print("")
+        print("Estos son todos los números sorteados el miércoles:")
+        Miércoles=Lista_de_Jugadas[40:60]
+        print(sorted(Miércoles))
+        print("")
+        print("Estos son todos los números sorteados el jueves:")
+        Jueves=Lista_de_Jugadas[60:80]
+        print(sorted(Jueves))
+        print("")
+        print("Estos son todos los números sorteados el viernes:")
+        Viernes=Lista_de_Jugadas[80:100]
+        print(sorted(Viernes))
+    print("\n")
+    klingon=input("")
+    os.system("cls")
+######################################################################################################
+######################################################################################################
+def Controlar_faltantes():
+    import os
+    import pickle
+    Lista_de_Jugadas=pickle.load(open('Lista_de_Jugadas.dat', 'rb'))
+    Lista_de_Usuarios_100=pickle.load(open('Lista_de_Usuarios_100.dat', 'rb'))
+    Lista_de_Borrados_100=pickle.load(open('Lista_de_Borrados_100.dat', 'rb'))
+    Error=0
+    Search_count=-1
+    Winners=[]
+    Winners0=[]
+    Winners1=[]
+    Winners2=[]
+    Winners3=[]
+    Winners4=[]
+    Winners5=[]
+    Winners6=[]
+    Winners7=[]
+    Winners8=[]
+    Winners9=[]
+    Winners10=[]
+    VAR=-1
+    for v in range(10):
+        for Listilla in Lista_de_Borrados_100: #Dentro de cada Lista en Números Borrados
+            for elemento in Listilla: #Cada elemento de cada Lista en Números Borrados
+                if elemento in Lista_de_Jugadas:
+                    Listilla.remove(elemento) #Si el número se ha sorteado, debe eliminarse de la lista de cada Usuario que lo tenga
+            Search_count+=1
+            if Listilla==[]: #Indicador para saber si alguien consiguió borrar todos los números
+                if Lista_de_Usuarios_100[Search_count] not in Winners:
+                    Winners.append(Lista_de_Usuarios_100[Search_count])
+        Search_count=-1
+    if len(Lista_de_Jugadas)<100:
+        for elex in Lista_de_Borrados_100:
+            Search_count+=1
+            if elex==[]:
+                Error+=1
+                print("\n")
+                print("\n")
+                print(colorText(f"[[green]]{Lista_de_Usuarios_100[Search_count]}[[byellow]]GANÓ LA [[bmagenta]]POLLA DE $100![[reset]]"))
+                print("\n")
+                print("\n")
+        Search_count=-1
+        if Error==0:
+            print("\n")
+            print("\n")
+            print(colorText("                          [[green]]                    Aún nadie ha ganado la [[bmagenta]]Polla de 100[[reset]]."))
+            print("\n")
+            print("\n")
+        else:
+            klingon=""
+    elif len(Lista_de_Jugadas)==100:
+        for elem in Lista_de_Borrados_100:
+            Search_count+=1
+            if elem==[]:
+                Winners0.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==1:
+                Winners1.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==2:
+                Winners2.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==3:
+                Winners3.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==4:
+                Winners4.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==5:
+                Winners5.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==6:
+                Winners6.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==7:
+                Winners7.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==8:
+                Winners8.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==9:
+                Winners9.append(Lista_de_Usuarios_100[Search_count])
+            elif len(elem)==10:
+                Winners10.append(Lista_de_Usuarios_100[Search_count])
+        Search_count=-1
+        if len(Winners0)>0:
+            if len(Winners0)==1:
+                Champ=Winners0[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners0)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners0[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+        elif len(Winners1)>0:
+            if len(Winners1)==1:
+                Champ=Winners1[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners1)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners1[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+        elif len(Winners2)>0:
+            if len(Winners2)==1:
+                Champ=Winners2[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners2)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners2[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]"))
+                    print("")
+        elif len(Winners3)>0:
+            if len(Winners3)==1:
+                Champ=Winners3[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners3)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners3[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+        elif len(Winners4)>0:
+            if len(Winners4)==1:
+                Champ=Winners4[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners4)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners4[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+        elif len(Winners5)>0:
+            if len(Winners5)==1:
+                Champ=Winners5[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners5)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners5[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+        elif len(Winners6)>0:
+            if len(Winners6)==1:
+                Champ=Winners6[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners6)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners6[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+        elif len(Winners7)>0:
+            if len(Winners7)==1:
+                Champ=Winners7[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners7)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners7[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+        elif len(Winners8)>0:
+            if len(Winners8)==1:
+                Champ=Winners8[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners8)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners8[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+        elif len(Winners9)>0:
+            if len(Winners9)==1:
+                Champ=Winners9[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners9)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners9[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+        elif len(Winners10)>0:
+            if len(Winners10)==1:
+                Champ=Winners10[0]
+                print(colorText(f"[[green]]{Champ}[[reset]] ganó la [[bmagenta]]Polla de $100[[reset]]!"))
+            else:
+                for Gana in range(len(Winners10)):
+                    VAR+=1
+                    print(colorText(f"[[green]]{Winners10[VAR]}[[reset]] sacó la [[bmagenta]]Polla de $100[[reset]]!"))
+                    print("")
+    klingon=input("")
+
+Elección=""
+while Elección!="Salir":
+    #Mensaje de inicio:
+    if len(Lista_de_Jugadas)==0:
+        print(colorText(f"""
+        Hola, aún no se ha realizado un control.
+        En este momento los servicios disponibles son:
+        [[red]]
+        El Comercial:[[reset]] {Fecha_Comercial[-10:]}  Nocturna
+        [[cyan]]
+        La Nación:[[reset]]    {Nac_Hora}{Nac_Fecha}
+
+        """))
+    elif len(Lista_de_Jugadas)==20:
+        Day="Lunes"
+        print(colorText(f"""
+        Hola, el último control realizado fue el día {Day} {Fecha}
+        En este momento los servicios disponibles son:
+        [[red]]
+        El Comercial:[[reset]] {Fecha_Comercial[-10:]}  Nocturna
+        [[cyan]]
+        La Nación:[[reset]]    {Nac_Hora}{Nac_Fecha}
+
+        """))
+    elif len(Lista_de_Jugadas)==40:
+        Day="Martes"
+        print(colorText(f"""
+        Hola, el último control realizado fue el día {Day} {Fecha}
+        En este momento los servicios disponibles son:
+        [[red]]
+        El Comercial:[[reset]] {Fecha_Comercial[-10:]}  Nocturna
+        [[cyan]]
+        La Nación:[[reset]]    {Nac_Hora}{Nac_Fecha}
+
+        """))
+    elif len(Lista_de_Jugadas)==60:
+        Day="Miércoles"
+        print(colorText(f"""
+        Hola, el último control realizado fue el día {Day} {Fecha}
+        En este momento los servicios disponibles son:
+        [[red]]
+        El Comercial:[[reset]] {Fecha_Comercial[-10:]}  Nocturna
+        [[cyan]]
+        La Nación:[[reset]]    {Nac_Hora}{Nac_Fecha}
+
+        """))
+    elif len(Lista_de_Jugadas)==80:
+        Day="Jueves"
+        print(colorText(f"""
+        Hola, el último control realizado fue el día {Day} {Fecha}
+        En este momento los servicios disponibles son:
+        [[red]]
+        El Comercial:[[reset]] {Fecha_Comercial[-10:]}  Nocturna
+        [[cyan]]
+        La Nación:[[reset]]    {Nac_Hora}{Nac_Fecha}
+
+        """))
+    elif len(Lista_de_Jugadas)==100:
+        Day="Viernes"
+        print(colorText(f"""
+        Hola, el último control realizado fue el día {Day} {Fecha}
+        En este momento los servicios disponibles son:
+        [[red]]
+        El Comercial:[[reset]] {Fecha_Comercial[-10:]}  Nocturna
+        [[cyan]]
+        La Nación:[[reset]]    {Nac_Hora}{Nac_Fecha}
+
+        """))
+    print(colorText(""" 
+    1. Tomar números desde el servicio de "[[red]]El Comercial[[reset]]".
+    2. Tomar números desde el servicio de "[[cyan]]La Nación[[reset]]".
+    3. Introducir números manualmente.
+    4. Realizar acción de control.
+    5. Ver números sorteados a día de hoy.
+
+    Salir. Salir del programa de control de Polla."""))
+    print("\n")
+    Elección=input("Introducir comando: ").title()
+    if Elección=="1":
+        Control_by_elComercial()
+        Controlar_faltantes()
+    elif Elección=="2":
+        Control_by_LaNacion()
+        Controlar_faltantes()
+    elif Elección=="3":
+        Control_manual()
+        Controlar_faltantes()
+    elif Elección=="4":
+        Controlar()
+        Controlar_faltantes()
+    elif Elección=="5":
+        Ver_Jugadas()
+    os.system("cls")
+os.system("cls")
+input("Programa terminado.")
+os.system("cls")
